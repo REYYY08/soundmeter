@@ -1,43 +1,76 @@
-const startBtn = document.getElementById("startBtn");
-const reading = document.getElementById("reading");
-const levelCircle = document.getElementById("levelCircle");
+body {
+  font-family: Poppins, sans-serif;
+  background: #0b1d38;
+  color: white;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+}
 
-let audioContext, analyser, dataArray;
+.app h1 {
+  margin-bottom: 15px;
+}
 
-startBtn.addEventListener("click", async () => {
-  startBtn.disabled = true;
-  startBtn.innerText = "Listening...";
+video {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 15px;
+  margin: 10px 0 25px;
+  display: block;
+}
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioContext.createMediaStreamSource(stream);
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = 2048;
-    dataArray = new Float32Array(analyser.fftSize);
-    source.connect(analyser);
+.circle {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 20px;
+}
 
-    animateMeter();
-  } catch (error) {
-    alert("❌ Microphone access denied or not supported on this device.");
-    console.error(error);
-    startBtn.disabled = false;
-    startBtn.innerText = "Start Listening";
-  }
-});
+circle {
+  transition: stroke-dashoffset 0.3s ease;
+}
 
-function animateMeter() {
-  analyser.getFloatTimeDomainData(dataArray);
-  let sum = 0;
-  for (let i = 0; i < dataArray.length; i++) sum += dataArray[i] * dataArray[i];
-  const rms = Math.sqrt(sum / dataArray.length);
-  const db = 20 * Math.log10(rms + 1e-6);
+.reading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.2em;
+  font-weight: bold;
+}
 
-  // Normalize for visual scale (0 = silence, 100 = loud)
-  const level = Math.min(Math.max((db + 60) / 60, 0), 1);
-  const offset = 283 - level * 283;
-  levelCircle.style.strokeDashoffset = offset;
-  reading.textContent = `${db.toFixed(1)} dB`;
+.reading #reading {
+  font-size: 1.8em;
+}
 
-  requestAnimationFrame(animateMeter);
+.data-section {
+  margin-top: 30px;
+  overflow-y: auto;
+  max-height: 250px;
+}
+
+table {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+th, td {
+  border: 1px solid #ffffff33;
+  padding: 6px 8px;
+}
+
+#toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff4444;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  display: none;
+  font-weight: 600;
 }
