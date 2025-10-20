@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Phone Sound Sensor</title>
+  <title>Smart Sound & Distance Sensor</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
-    <h1>🎤 Sound Sensor</h1>
+    <h1>🏍️ Smart Sound & Distance Sensor</h1>
+    <video id="camera" autoplay playsinline></video>
 
     <div class="circle">
       <svg viewBox="0 0 100 100">
@@ -18,12 +19,28 @@
           stroke-dasharray="283"
           stroke-dashoffset="283" />
       </svg>
-      <div class="reading" id="reading">-- dB</div>
+      <div class="reading">
+        <div id="reading">-- dB</div>
+        <div id="distance">-- m</div>
+      </div>
     </div>
 
-    <button id="startBtn">🎧 Start Listening</button>
-    <p class="note">Allow mic access and make some noise!</p>
+    <div class="data-section">
+      <h2>📊 Continuous Data Sheet</h2>
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Sound (dB)</th>
+            <th>Distance (m)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
+
+  <div id="toast">⚠️ Noise level reached 66 dB!</div>
 
   <script src="script.js"></script>
 </body>
