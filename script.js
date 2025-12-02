@@ -5,7 +5,15 @@ const levelCircle = document.getElementById("levelCircle");
 const toast = document.getElementById("toast");
 const tableBody = document.querySelector("#dataTable tbody");
 
+// Sensitivity slider
+const sensSlider = document.getElementById("sensitivity");
+const sensValue = document.getElementById("sensValue");
+
 let ctx, canvas, lastLog = 0;
+
+sensSlider.addEventListener("input", () => {
+  sensValue.textContent = sensSlider.value;
+});
 
 async function startSensors() {
   try {
@@ -14,14 +22,11 @@ async function startSensors() {
       video: { facingMode: "environment" },
     });
 
-    // Show camera
     video.srcObject = stream;
 
-    // Hidden canvas to analyze frames
     canvas = document.createElement("canvas");
     ctx = canvas.getContext("2d");
 
-    // Audio setup
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const source = audioCtx.createMediaStreamSource(stream);
     const analyser = audioCtx.createAnalyser();
@@ -30,13 +35,23 @@ async function startSensors() {
 
     function process() {
       analyser.getByteFrequencyData(dataArray);
-      let sumSquares = 0;
-      for (let i = 0; i < dataArray.length; i++) sumSquares += dataArray[i] * dataArray[i];
-      const rms = Math.sqrt(sumSquares / dataArray.length);
-      let db = Math.min(100, Math.max(0, (rms / 255) * 100));
+
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+      
+      let avg = sum / dataArray.length;
+
+      // Sensitivity multiplier
+      let sensitivity = parseFloat(sensSlider.value);
+
+      // Scale to 120 dB (new max)
+      let db = (avg / 255) * 120 * sensitivity;
+
+      // Clamp
+      db = Math.max(0, Math.min(120, db));
 
       const distance = estimateDistance(video);
-      if (distance > 1.5 && db < 66) db += distance * 10; // adjust db if far
+
       updateUI(db, distance);
       requestAnimationFrame(process);
     }
@@ -48,9 +63,10 @@ async function startSensors() {
   }
 }
 
-// Estimate distance based on frame brightness (simple simulation)
+// Brightness sim distance
 function estimateDistance(videoEl) {
   if (!ctx || !canvas) return 0;
+
   const width = videoEl.videoWidth;
   const height = videoEl.videoHeight;
   if (!width || !height) return 0;
@@ -61,14 +77,15 @@ function estimateDistance(videoEl) {
 
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
   let brightness = 0;
-  for (let i = 0; i < pixels.length; i += 4) {
+
+  for (let i = 0; i < pixels.length; i += 4)
     brightness += (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
-  }
+
   brightness /= pixels.length / 4;
 
-  // Convert brightness to distance (mock formula)
   let distance = 3 - (brightness / 255) * 3;
   distance = Math.max(0.2, Math.min(3.0, distance));
+
   return parseFloat(distance.toFixed(2));
 }
 
@@ -79,13 +96,14 @@ function updateUI(db, distance) {
   reading.textContent = db.toFixed(1) + " dB";
   distanceText.textContent = distance + " m";
 
-  const offset = 283 - (db / 100) * 283;
+  // Adjust circle for 120 dB scale
+  const offset = 283 - (db / 120) * 283;
   levelCircle.style.strokeDashoffset = offset;
 
-  // Show alert if ≥ 66 dB
-  if (db >= 66) showToast();
+  // Alerts:
+  if (db >= 100) showToast("🔥 OPEN PIPE LEVEL DETECTED (100+ dB)!");
+  else if (db >= 70) showToast("⚠️ Loud conversation detected (70+ dB)");
 
-  // Log data every second
   if (now - lastLog >= 1000) {
     const row = document.createElement("tr");
     row.innerHTML = `<td>${timeString}</td><td>${db.toFixed(1)}</td><td>${distance}</td>`;
@@ -94,7 +112,8 @@ function updateUI(db, distance) {
   }
 }
 
-function showToast() {
+function showToast(msg) {
+  toast.textContent = msg;
   toast.style.display = "block";
   setTimeout(() => (toast.style.display = "none"), 2000);
 }
