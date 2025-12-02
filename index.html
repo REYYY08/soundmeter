@@ -9,6 +9,7 @@
 <body>
   <div class="app">
     <h1>🏍️ Smart Sound & Distance Sensor</h1>
+
     <video id="camera" autoplay playsinline></video>
 
     <div class="circle">
@@ -25,6 +26,23 @@
       </div>
     </div>
 
+    <div class="sensitivity-box">
+  <label>Sensitivity: <span id="sensValue">1.0</span>x</label>
+  <input type="range" id="sensitivity" min="0.5" max="3" value="1" step="0.1">
+</div>
+
+<style>
+  .sensitivity-box {
+    background: #222;
+    color: white;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+</style>
+
+
     <div class="data-section">
       <h2>📊 Continuous Data Sheet</h2>
       <table id="dataTable">
@@ -40,7 +58,7 @@
     </div>
   </div>
 
-  <div id="toast">⚠️ Noise level reached 66 dB!</div>
+  <div id="toast">⚠️ OPEN PIPE noise reached 100 dB!</div>
 
   <script src="script.js"></script>
 </body>
